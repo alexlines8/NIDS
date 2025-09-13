@@ -1,88 +1,48 @@
 package PacketSniffer;
-import java.util.Enumeration;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.core.Pcaps;
+import org.pcap4j.core.PcapNativeException;
+import java.util.List;
 
 public class PacketSniffer {
-    
-    private NetworkInterface selectedInterface;
 
-    public PacketSniffer() {
-        System.out.println("PacketSniffer created");
-    }
-    
+    private PcapNetworkInterface selectedInterface;
 
-    /**
-     * Print all the Network Interfaces that are up
-     */
     public void listInterfaces() {
         try {
-            System.out.println("Listing network interfaces:");
-            
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            int count = 0;
-
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface netInterface = interfaces.nextElement();
-
-                if (!netInterface.isUp() || netInterface.isVirtual() || netInterface.isLoopback()) {
-                    continue;
-                }
-
-                System.out.println("[" + count++ + "] " + netInterface.getName() + 
-                                  " - " + netInterface.getDisplayName());
-                
-                // Print IP addresses associated with this interface
-                netInterface.getInterfaceAddresses().forEach(address -> {
-                    System.out.println("    Address: " + address.getAddress().getHostAddress());
-                });
+            List<PcapNetworkInterface> interfaces = Pcaps.findAllDevs();
+            if (interfaces == null || interfaces.isEmpty()) {
+                System.out.println("No network interfaces found by Pcap4J.");
+                return;
             }
-            
-            if (count == 0) {
-                System.out.println("No active network interfaces found");
+            int i = 0;
+            for (PcapNetworkInterface dev : interfaces) {
+                System.out.println("[" + i++ + "] " + dev.getName() + " - " + dev.getDescription());
             }
-            
-        } catch (SocketException e) {
-            System.err.println("Error retrieving network interfaces: " + e.getMessage());
+        } catch (PcapNativeException e) {
+            System.err.println("Error listing interfaces: " + e.getMessage());
         }
     }
 
-    /**
-     * Select the wifi interface and print it out
-     * @return true if wifi interface is found
-     */
     public boolean selectWiFiInterface() {
         try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-
-            while (interfaces.hasMoreElements()){
-                NetworkInterface netInterface = interfaces.nextElement();
-
-                if (netInterface.getName().equals("wireless_32768") && netInterface.getDisplayName().contains("MediaTek Wi-Fi")) {
-                    if (!netInterface.getInterfaceAddresses().isEmpty()) {
-                        selectedInterface = netInterface;
-                        System.out.println("Selected WiFi Interface: " + netInterface.getDisplayName());
-
-                        netInterface.getInterfaceAddresses().forEach(address -> {
-                            if (address.getAddress().getHostAddress().contains(".")) {
-                                System.out.println("IP: " + address.getAddress().getHostAddress());
-                            }
-                        });
-
-                        return true;
-                    }
+            List<PcapNetworkInterface> interfaces = Pcaps.findAllDevs();
+            for (PcapNetworkInterface dev : interfaces) {
+                if (dev.getDescription().toLowerCase().contains("wi-fi")) {
+                    selectedInterface = dev;
+                    System.out.println("Selected WiFi Interface: " + dev.getName() + " - " + dev.getDescription());
+                    return true;
                 }
             }
-            System.out.println("WiFi LAN Card not found or not active");
+            System.out.println("WiFi interface not found.");
             return false;
-        } catch (SocketException e) {
-            System.err.println("Error Selecting WiFi Interface: " + e.getMessage());
+        } catch (PcapNativeException e) {
+            System.err.println("Error selecting WiFi interface: " + e.getMessage());
             return false;
         }
     }
-    
-    public NetworkInterface getSelectedInterface() {
+
+    public PcapNetworkInterface getSelectedInterface() {
         return selectedInterface;
     }
 }
