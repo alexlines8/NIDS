@@ -6,6 +6,8 @@ public class Main{
 
         PacketSniffer sniffer = new PacketSniffer();
         sniffer.listInterfaces();
+        sniffer.selectWiFiInterface();
+        System.out.println(sniffer.getSelectedInterface());
 
     }
 }
