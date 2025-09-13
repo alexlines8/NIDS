@@ -12,6 +12,10 @@ public class PacketSniffer {
         System.out.println("PacketSniffer created");
     }
     
+
+    /**
+     * Print all the Network Interfaces that are up
+     */
     public void listInterfaces() {
         try {
             System.out.println("Listing network interfaces:");
@@ -44,6 +48,10 @@ public class PacketSniffer {
         }
     }
 
+    /**
+     * Select the wifi interface and print it out
+     * @return true if wifi interface is found
+     */
     public boolean selectWiFiInterface() {
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();

@@ -5,9 +5,13 @@ public class Main{
         System.out.println("Starting NIDS Data Collector...");
 
         PacketSniffer sniffer = new PacketSniffer();
-        sniffer.listInterfaces();
-        sniffer.selectWiFiInterface();
-        System.out.println(sniffer.getSelectedInterface());
+        // sniffer.listInterfaces();
+        boolean wifiInterfaceFound = sniffer.selectWiFiInterface();
+        if (wifiInterfaceFound){
+            System.out.println("WiFi interrface selected successfully");
+        } else {
+            System.err.println("Failed to select WiFI interface");
+        }
 
     }
 }
