@@ -5,11 +5,7 @@ import org.pcap4j.packet.Packet;
 import org.pcap4j.core.PacketListener;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNativeException;
-import org.pcap4j.packet.EthernetPacket;
-import org.pcap4j.packet.IpV4Packet;
-import org.pcap4j.packet.IpV6Packet;
-import org.pcap4j.packet.TcpPacket;
-import org.pcap4j.packet.UdpPacket;
+import org.pcap4j.core.PcapDumper;
 import java.util.List;
 
 public class PacketSniffer {
@@ -68,6 +64,7 @@ public class PacketSniffer {
                 10
             );
 
+            PcapDumper dumper = handle.dumpOpen("dump.pcap");
             PacketListener listener = new PacketListener() {
                 @Override
                 public void gotPacket(Packet packet) {
@@ -79,52 +76,14 @@ public class PacketSniffer {
 
                     }
 
-                    // Ethernet
-                EthernetPacket eth = packet.get(EthernetPacket.class);
-                if (eth != null) {
-                    System.out.println("Ethernet: " +
-                        eth.getHeader().getSrcAddr() + " -> " +
-                        eth.getHeader().getDstAddr());
-                }
+                    System.out.println("Packet length: " + packet.length() + " bytes");
+                    System.out.println();
 
-                // IPv4
-                IpV4Packet ipv4 = packet.get(IpV4Packet.class);
-                if (ipv4 != null) {
-                    System.out.println("IPv4: " +
-                        ipv4.getHeader().getSrcAddr() + " -> " +
-                        ipv4.getHeader().getDstAddr());
-                    System.out.println("Protocol: " + ipv4.getHeader().getProtocol());
-                }
-
-                // IPv6
-                IpV6Packet ipv6 = packet.get(IpV6Packet.class);
-                if (ipv6 != null) {
-                    System.out.println("IPv6: " +
-                        ipv6.getHeader().getSrcAddr() + " -> " +
-                        ipv6.getHeader().getDstAddr());
-                    System.out.println("Protocol: " + ipv6.getHeader().getNextHeader());
-                }
-
-                // TCP
-                TcpPacket tcp = packet.get(TcpPacket.class);
-                if (tcp != null) {
-                    System.out.println("TCP: " +
-                        tcp.getHeader().getSrcPort() + " -> " +
-                        tcp.getHeader().getDstPort());
-                }
-
-                // UDP
-                UdpPacket udp = packet.get(UdpPacket.class);
-                if (udp != null) {
-                    System.out.println("UDP: " +
-                        udp.getHeader().getSrcPort() + " -> " +
-                        udp.getHeader().getDstPort());
-                }
-
-                System.out.println("Packet length: " + packet.length() + " bytes");
-                System.out.println();
-
-
+                    try {
+                        dumper.dump(packet, handle.getTimestamp());
+                    } catch (org.pcap4j.core.NotOpenException e) {
+                        System.err.println("Error dumping packet: " + e.getMessage());
+                    }
                 }
             };
 
